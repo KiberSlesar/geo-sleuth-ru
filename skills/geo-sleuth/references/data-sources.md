@@ -15,6 +15,7 @@
 | `tiles.py` | Satellite tile mosaic, `mark` plots points + overlays GeoJSON lines + field-of-view wedge, `sheet` numbered thumbnails of candidate points |
 | `baidu_pano.py` | Baidu panoramas: near / info / scan / render / sheet (`--headings` to look around from one point, `--road` `--spread`) / sample (street view sampling of candidate cities) |
 | `gsv.py` | Google Street View (outside China): near / render / sheet / `targets` (panoramas around each target point, rendered facing it, for `match.py --items`), no key, official coverage only |
+| `yandex_pano.py` | Yandex Panoramas (Russia, Belarus, Kazakhstan, Türkiye and neighbours): near / info / render / scan / sheet (with `--date` for historical captures), no key; views are stitched from tiles locally, so nothing is baked into them |
 | `pose.py` | Solve camera position from multiple points: lat/lon, height, heading, pitch, roll, field of view + error radius + per-point check; `check` scores discrete candidate camera positions; `project` projects map points back onto the photo |
 | `terrain.py` | Elevation: view (synthesized mountain view; `--overlay` overlays the skyline on the photo, `--roll`) / profile (skyline) / elev / `ridge` reads ridgeline pixel points from the photo / `scan` filters a whole region along infrastructure lines for "flat nearby + mountain present" points and clusters them / `fit` batch skyline scoring of candidate camera positions (optional infrastructure-distance constraint; outputs overlays of the top N) |
 | `evidence.py` | Evidence image: satellite image + camera-position wedge + comparison panels |
@@ -75,6 +76,7 @@ The endpoints are all at `https://mapsv0.bdimg.com/`, need no key, and must be a
 | Source | Use | Known issues |
 |---|---|---|
 | Google Street View | Street view outside China, with historical dates; `gsv.py` | Almost none in China; user-uploaded panoramas are filtered because perspective rendering fails. `targets` uses the undocumented z17 coverage layer (`/maps/photometa/ac/v1`); failures are reported and not cached. The layer is incomplete: empty coverage is not evidence against a target; check with `near` |
+| Yandex Panoramas | Street view in Russia, Belarus, Kazakhstan, Türkiye, Armenia, Georgia, Uzbekistan; `yandex_pano.py` | The main source for Russia and its neighbours, where Google Street View is sparse; 3–5 historical captures per point in big cities. Views render locally from the equirectangular tiles (`Origin` is the projection center in compass degrees); a failed tile fetch is retried on the next run, never cached |
 | Mapillary, KartaView | Crowdsourced street view, rural roads outside China | Almost none in China |
 | Tencent Street View | Backup in China | API not yet investigated |
 | Map POI photos, hotel/scenic-area photos online, tourist photos | Compare skylines and building shapes when there's no street view | Shooting angle can't be controlled |

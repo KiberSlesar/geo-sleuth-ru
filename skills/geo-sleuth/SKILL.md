@@ -105,7 +105,7 @@ uv run ${CLAUDE_SKILL_DIR}/scripts/sat_scan.py points --points big.json --preset
 ### Step 5: confirmation — street view is ranked first too
 
 ```bash
-uv run ${CLAUDE_SKILL_DIR}/scripts/baidu_pano.py scan <lat,lon> --radius 300 --out panos.json                     # the street-view script the region card names (CN: baidu_pano.py); otherwise gsv.py
+uv run ${CLAUDE_SKILL_DIR}/scripts/baidu_pano.py scan <lat,lon> --radius 300 --out panos.json                     # the street-view script the region card names (CN: baidu_pano.py, RU/BY/KZ/TR: yandex_pano.py); otherwise gsv.py
 uv run ${CLAUDE_SKILL_DIR}/scripts/match.py rank --query photo.jpg --panos panos.json --toward <landmark lat,lon> --spread 15 --refine sift --top 10 --out m.json --sheet m.jpg
 uv run ${CLAUDE_SKILL_DIR}/scripts/match.py rank --query photo.jpg --items around.index.json --render gsv --spread-headings -30,0,30 --out m.json --sheet m.jpg
 ```

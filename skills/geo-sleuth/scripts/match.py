@@ -208,7 +208,8 @@ def _overlay(engine: str | None) -> tuple | None:
     """The box a street-view renderer bakes into every view (its LOGO_BOX), to keep out of SIFT; None for plain images."""
     if not engine:
         return None
-    return getattr(__import__("baidu_pano" if engine == "baidu" else "gsv"), "LOGO_BOX", None)
+    module = {"baidu": "baidu_pano", "gsv": "gsv", "yandex": "yandex_pano"}.get(engine, engine)
+    return getattr(__import__(module), "LOGO_BOX", None)
 
 
 def _render_items(items: list[dict], engine: str, proxy: str | None, cache: Path) -> list[Image.Image | None]:
@@ -217,6 +218,14 @@ def _render_items(items: list[dict], engine: str, proxy: str | None, cache: Path
         def one(it):
             try:
                 return gsv.render(it["id"], it["heading"], it.get("pitch", 0), it.get("fov", 90), 640, 480, proxy, cache / "gsv")
+            except Exception:  # noqa: BLE001
+                return None
+    elif engine == "yandex":
+        import yandex_pano as yp
+        def one(it):
+            try:
+                m = it.get("meta") or yp.info(it["id"], proxy, cache / "yandex")
+                return yp.render(m, it["heading"], it.get("pitch", 0), it.get("fov", 90), 640, 480, 2, proxy, cache / "yandex") if m else None
             except Exception:  # noqa: BLE001
                 return None
     else:
@@ -280,7 +289,15 @@ def _load_candidates(args) -> tuple[list[dict], list[Image.Image]]:
             how = "in list order"
         print(f"{len(items)} candidates, more than --max-candidates {args.max_candidates}; taking {args.max_candidates} {how} (narrow first with --within/--spread)", file=sys.stderr)
         items = items[: args.max_candidates]
-    engine = args.render or ("gsv" if items and str(items[0].get("id", "")).startswith(("CAoS", "CIHM")) or len(str(items[0].get("id", ""))) == 22 else "baidu")
+    first_id = str(items[0].get("id", "")) if items else ""
+    if args.render:
+        engine = args.render
+    elif re.fullmatch(r"\d+_\d+_\d+(?:_\d+)?", first_id):
+        engine = "yandex"
+    elif first_id.startswith(("CAoS", "CIHM")) or len(first_id) == 22:
+        engine = "gsv"
+    else:
+        engine = "baidu"
     ims = _render_items(items, engine, args.proxy, cache)
     ok_items, ok_ims = [], []
     for it, im in zip(items, ims):
@@ -397,7 +414,7 @@ def main() -> None:
     r.add_argument("--query-box", help="x0,y0,x1,y1: compare only this region")
     r.add_argument("--images")
     r.add_argument("--items", help=".index.json from baidu_pano.py / gsv.py")
-    r.add_argument("--render", choices=["baidu", "gsv"], help="which engine renders --items; if omitted, guessed from the id format")
+    r.add_argument("--render", choices=["baidu", "gsv", "yandex"], help="which engine renders --items; if omitted, guessed from the id format")
     r.add_argument("--spread-headings", help="extra heading offsets for each --items entry, e.g. -30,0,30")
     r.add_argument("--panos", help="output of baidu_pano.py scan")
     r.add_argument("--toward", help="lat,lon")

@@ -1,0 +1,16 @@
+{
+ "code": "RU",
+ "name": "Russia",
+ "names": ["Russia", "Russian Federation", "Россия", "Российская Федерация", "РФ", "RF"],
+ "status": "community",
+ "maintainers": ["@KiberSlesar"],
+ "docs": ["clues.md"],
+ "services": {
+  "poi": {"sources": "osm", "country": "ru"},
+  "street_view": "yandex_pano.py"
+ },
+ "tips": {
+  "street_view": "Yandex Panoramas cover most Russian roads (`yandex_pano.py`); Google Street View is sparse and years old. Historical captures: `yandex_pano.py sheet --date <year>` (Yandex keeps 3–5 years of captures per point). Same script serves BY/KZ/TR/AM/GE/UZ.",
+  "municipal": "guardrails, street lights, bus stops, curb styles → `yandex_pano.py scan <center> --radius 250 --out panos.json` then `yandex_pano.py sheet --panos`-style contact sheets per candidate; compare fixtures district by district"
+ }
+}
