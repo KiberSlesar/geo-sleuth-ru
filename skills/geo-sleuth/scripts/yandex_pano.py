@@ -9,6 +9,20 @@ see dates and nearby points, render by heading, build comparison sheets. Usage m
 Uses the endpoints the Yandex Maps web page itself calls; no key needed.
 Coverage: https://yandex.com/maps/streetview/ — mostly RU, BY, KZ, TR, AM, GE, UZ. Outside this area use gsv.py.
 
+What it has, and how it differs from the other two panorama scripts:
+- Coverage is the point: Yandex drives almost every Russian road and keeps 3–5 historical captures per point in
+  cities (2010–today), where Google Street View is sparse and years old; in China use baidu_pano.py as before.
+- Rendering works differently: Google and Baidu serve a finished perspective image per request, Yandex serves only
+  equirectangular tiles — `render`/`sheet` stitch them locally and project the view themselves. Consequences:
+  no logo or watermark is baked into the image (LOGO_BOX is None for match.py), resolution is chosen with `--zoom`,
+  and the first view of a panorama downloads its tiles (~80 small requests, reused afterwards from .geo-cache).
+- The panoid encodes the capture date (last numeric segment is a unix timestamp), so `near`/`info` return the date
+  and historical captures without extra requests; `sheet --date 2018` renders only that year's capture.
+- `scan` matches baidu_pano.py's scan output ({id: {wgs, road, date}}), so `match.py rank --panos` works unchanged,
+  and `match.py --render yandex` is picked automatically from the panoid format (digits_digits_digits_digits).
+- Not implemented yet (baidu_pano.py/gsv.py have them): `sample` (random city fixture sampling) and `targets`
+  (panoramas around each target point); use gsv.py targets where Google has coverage.
+
 Examples:
   yandex_pano.py near 55.7558,37.6176 --radius 50              # nearest panorama point: id, coordinates, capture date, historical captures, street, nearby points
   yandex_pano.py render 1298139818_673202752_23_1758020864 --heading 0 --out v.jpg
